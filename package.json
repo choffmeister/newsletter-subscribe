@@ -1,0 +1,17 @@
+{
+  "name": "newsletter-subscribe",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "lint": "prettier **/*.js --write",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "jsonwebtoken": "^8.5.0",
+    "prettier": "^1.16.4"
+  }
+}
