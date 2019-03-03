@@ -1,6 +1,8 @@
 const bodyParser = require('body-parser')
 const express = require('express')
 const jsonWebToken = require('jsonwebtoken')
+
+const blacklist = require('./src/blacklist')
 const mailgunClient = require('./src/mailgunClient')
 const mailTemplate = require('./src/mailTemplate')
 const webTemplates = require('./src/webTemplates')
@@ -18,16 +20,20 @@ app.post('/newsletter/subscribe', bodyParser.urlencoded({ extended: true }), asy
     const email = !!req.body && typeof req.body.email === 'string' ? req.body.email.trim() : undefined
     const name = !!req.body && typeof req.body.name === 'string' ? req.body.name.trim() : undefined
     if (email) {
-      const token = jsonWebToken.sign({
-        mailingListAddress,
-        email,
-        name,
-      }, tokenSecret, {
-        expiresIn: '2 days'
-      })
-      await mailgunClient.sendMail(domain, apiKey, from, email, 'Subscribe to newsletter', mailTemplate.mail(baseUrl, token))
-      console.log(`Sent email to ${email}`)
-      res.send(webTemplates.step1)
+      if (!blacklist.some(regexp => regexp.test(email))) {
+        const token = jsonWebToken.sign({
+          mailingListAddress,
+          email,
+          name,
+        }, tokenSecret, {
+          expiresIn: '2 days'
+        })
+        await mailgunClient.sendMail(domain, apiKey, from, email, 'Subscribe to newsletter', mailTemplate.mail(baseUrl, token))
+        console.log(`Sent email to ${email}`)
+        res.send(webTemplates.step1)
+      } else {
+        res.send(webTemplates.error('Your email is on our blacklist'))
+      }
     } else {
       res.status(400).send(webTemplates.error('Bad request'))
     }
